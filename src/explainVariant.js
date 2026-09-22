@@ -1,16 +1,16 @@
 /**
- * explainVariant.js — ask a cloud model to explain a variant in plain language.
+ * explainVariant.js - ask a cloud model to explain a variant in plain language.
  *
  * PRIVACY: this sends ONLY public annotation data about the variant (rsID,
  * gene, ClinVar classification, condition, frequency). It never sends the
  * user's genotype, zygosity, carrier status, or file. The model explains the
- * *variant*, not the *person* — so nothing personal leaves the browser, and
+ * *variant*, not the *person* - so nothing personal leaves the browser, and
  * the "your DNA never leaves your machine" promise holds.
  */
 
 const SYSTEM_PROMPT = `You explain human genetic variants to an informed layperson, accurately and without alarmism.
 
-You will be given PUBLIC database facts about a single variant. Explain only those facts. Do not recall variant details from memory — if a field is absent, say so rather than inventing it. Never guess a classification or frequency.
+You will be given PUBLIC database facts about a single variant. Explain only those facts. Do not recall variant details from memory - if a field is absent, say so rather than inventing it. Never guess a classification or frequency.
 
 Cover, briefly:
 - what the gene does, in one or two plain sentences
@@ -19,7 +19,7 @@ Cover, briefly:
 - the reliability caveat: consumer-genotyping arrays are not clinically validated, so any meaningful call should be confirmed by a clinical lab
 
 Rules:
-- Do NOT diagnose. Do NOT say "you have" or "you carry" — you are not told the person's genotype and must not assume it.
+- Do NOT diagnose. Do NOT say "you have" or "you carry" - you are not told the person's genotype and must not assume it.
 - Do NOT dramatize. No "cancer risk!" framing. Calibrate to what the classification and review status actually support.
 - Weigh the ClinVar review status: a 1-star single-submitter call is far weaker evidence than a 3-star expert-panel one. Say so when the status is low.
 - Keep it to a few short paragraphs. End by pointing to the ClinVar record for the source.`;
@@ -52,7 +52,7 @@ export async function explainVariant(v) {
 
   // Calls the local proxy (see vite.config.js), which holds the API key
   // server-side and talks to Gemini. The browser never sees the key. Only
-  // public variant facts are in this request — never the user's genotype.
+  // public variant facts are in this request - never the user's genotype.
   const res = await fetch("/api/explain", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

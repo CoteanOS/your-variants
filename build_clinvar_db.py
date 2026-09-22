@@ -8,7 +8,7 @@ downloaded once by the browser, then queried entirely client-side via
 SQLite-WASM over OPFS (see src/clinvarWorker.js).
 
 The whole DB is fetched once and cached locally; queries never hit the
-network. This is deliberate — range-request engines (sql.js-httpvfs) would
+network. This is deliberate - range-request engines (sql.js-httpvfs) would
 leak *which* variants were looked up via server access logs, which defeats
 the privacy goal. Full download, local query, nothing leaves the browser.
 

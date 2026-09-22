@@ -1,5 +1,5 @@
 /**
- * clinvarClient.js — import THIS from React (not the worker).
+ * clinvarClient.js - import THIS from React (not the worker).
  * Spins up clinvarWorker.js and exposes promise-based functions.
  */
 

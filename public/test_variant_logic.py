@@ -1,5 +1,5 @@
 """
-Tests for variant_logic.py — the parse + classify functions that run in
+Tests for variant_logic.py - the parse + classify functions that run in
 Pyodide. Pure Python, no browser needed:  python -m pytest public/
 (or just: python public/test_variant_logic.py)
 """

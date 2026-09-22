@@ -29,7 +29,7 @@ describe("sigCategory", () => {
   });
 });
 
-describe("confInfo — star tiers", () => {
+describe("confInfo - star tiers", () => {
   it("practice guideline = 4 stars", () => {
     expect(confInfo("practice guideline", 5).stars).toBe(4);
   });
