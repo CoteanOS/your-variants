@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { initDb, matchRsids } from "./clinvarClient.js";
 import { parse23andMe, classifyMatches } from "./pyengine.js";
+import TraitChat from "./TraitChat.jsx";
 import {
   BASE, sigRank, sigColor, zygInfo, CAT_LABELS, sigCategory,
   confInfo, hasSignal, variantLink, clusterByArea, conditionArea,
@@ -51,6 +52,7 @@ async function loadXLSX() {
 
 export default function App() {
   const [status, setStatus] = useState("");
+  const [genotypes, setGenotypes] = useState(null);
   const [results, setResults] = useState([]);
   const [summary, setSummary] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -82,6 +84,7 @@ export default function App() {
 
       setStatus("Parsing genotypes (Python)");
       const { rsids, genotypes } = await parse23andMe(text);
+      setGenotypes(genotypes);
       if (!rsids.length) {
         throw new Error(
           "No rsIDs found in this file. Expected raw 23andMe or AncestryDNA " +
@@ -207,6 +210,7 @@ export default function App() {
         </div>
       )}
 
+      {genotypes && <TraitChat genotypes={genotypes} />}
       {clusters.length > 0 && (
         <div className="yv-dash">
           <div className="yv-dash-head">

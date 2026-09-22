@@ -1,0 +1,95 @@
+{
+  "_comment": "Curated map of well-known single-SNP traits reliably covered by consumer genotyping chips. Each trait lists the rsID(s) to look up, plus how to read the genotype. 'effect' maps a normalized genotype to a plain meaning. Genotypes are matched strand-aware by the app; keys here are on the + strand as ClinVar/dbSNP report them. This is a knowledge base, not a diagnosis — every entry is a well-established common-trait association, not clinical guidance.",
+  "traits": [
+    {
+      "id": "lactose",
+      "names": ["lactose tolerance", "lactose intolerance", "can i digest milk", "lactase persistence", "dairy"],
+      "gene": "MCM6 / LCT",
+      "primary_rsid": "rs4988235",
+      "rsids": ["rs4988235", "rs182549"],
+      "summary": "A variant upstream of the LCT (lactase) gene determines whether lactase production continues into adulthood (lactase persistence).",
+      "effect": {
+        "rs4988235": {
+          "AA": "Likely lactase-persistent — typically able to digest lactose as an adult.",
+          "AG": "Likely lactase-persistent — one copy is usually enough for lactose digestion.",
+          "GG": "Likely lactase non-persistent — more likely to be lactose intolerant as an adult."
+        }
+      }
+    },
+    {
+      "id": "caffeine",
+      "names": ["caffeine metabolism", "caffeine", "do i metabolize coffee fast", "coffee"],
+      "gene": "CYP1A2",
+      "primary_rsid": "rs762551",
+      "rsids": ["rs762551"],
+      "summary": "CYP1A2 sets how fast caffeine is cleared. The A allele is the 'fast metabolizer' form.",
+      "effect": {
+        "rs762551": {
+          "AA": "Fast caffeine metabolizer.",
+          "AC": "Intermediate/slow caffeine metabolizer.",
+          "CC": "Slow caffeine metabolizer."
+        }
+      }
+    },
+    {
+      "id": "alcohol_flush",
+      "names": ["alcohol flush", "asian flush", "alcohol tolerance", "do i flush when drinking", "aldh2"],
+      "gene": "ALDH2",
+      "primary_rsid": "rs671",
+      "rsids": ["rs671"],
+      "summary": "ALDH2 breaks down acetaldehyde from alcohol. The A allele reduces enzyme function, causing the facial-flush reaction.",
+      "effect": {
+        "rs671": {
+          "GG": "Normal ALDH2 — no typical alcohol-flush reaction.",
+          "AG": "Reduced ALDH2 — often flushes and is more sensitive to alcohol.",
+          "AA": "Strongly reduced ALDH2 — strong flush reaction, low alcohol tolerance."
+        }
+      }
+    },
+    {
+      "id": "bitter_taste",
+      "names": ["bitter taste", "can i taste bitter", "ptc", "tas2r38", "broccoli taste"],
+      "gene": "TAS2R38",
+      "primary_rsid": "rs713598",
+      "rsids": ["rs713598"],
+      "summary": "TAS2R38 affects the ability to taste certain bitter compounds (PTC/PROP) found in brassica vegetables.",
+      "effect": {
+        "rs713598": {
+          "GG": "Taster — perceives these bitter compounds strongly.",
+          "CG": "Intermediate taster.",
+          "CC": "Non-taster — perceives little of this bitterness."
+        }
+      }
+    },
+    {
+      "id": "earwax",
+      "names": ["earwax", "wet or dry earwax", "abcc11", "body odor"],
+      "gene": "ABCC11",
+      "primary_rsid": "rs17822931",
+      "rsids": ["rs17822931"],
+      "summary": "ABCC11 determines wet vs dry earwax type (and correlates with axillary body-odor type).",
+      "effect": {
+        "rs17822931": {
+          "CC": "Wet earwax type.",
+          "CT": "Wet earwax type (wet is dominant).",
+          "TT": "Dry earwax type."
+        }
+      }
+    },
+    {
+      "id": "muscle_fiber",
+      "names": ["muscle type", "sprinter or endurance", "actn3", "power athlete", "fast twitch"],
+      "gene": "ACTN3",
+      "primary_rsid": "rs1815739",
+      "rsids": ["rs1815739"],
+      "summary": "ACTN3 (the 'sprinter gene') affects fast-twitch muscle fibre function. The C allele produces functional protein.",
+      "effect": {
+        "rs1815739": {
+          "CC": "Two functional copies — associated with power/sprint performance.",
+          "CT": "One functional copy — mixed profile.",
+          "TT": "No functional ACTN3 — more common in endurance profiles."
+        }
+      }
+    }
+  ]
+}
