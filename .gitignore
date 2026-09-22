@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# generated ClinVar DB and source dumps — large, rebuildable, never commit
+public/clinvar.sqlite
+*.sqlite
+*.sqlite-journal
+variant_summary*.txt*
+*.txt.gz
+
+# raw genetic data — never commit, ever
+genome*.txt
+AncestryDNA*.txt
+*_23andMe*.txt
+
+# python test cache
+__pycache__/
+*.pyc
+
+# test/coverage output
+coverage/
+
+# local secrets — never commit
+.env.local
+.env
