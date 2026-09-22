@@ -1,5 +1,5 @@
 /**
- * pyengine.js — loads Pyodide (Python in the browser) and runs variant_logic.py.
+ * pyengine.js - loads Pyodide (Python in the browser) and runs variant_logic.py.
  *
  * No npm install: Pyodide is pulled from the CDN. If the version below 404s,
  * bump PYODIDE_VERSION to a current release (see pyodide.org/downloads).

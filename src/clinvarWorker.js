@@ -1,5 +1,5 @@
 /**
- * clinvarWorker.js  — runs in a Web Worker (required for OPFS).
+ * clinvarWorker.js  - runs in a Web Worker (required for OPFS).
  * Owns the SQLite DB. Talk to it via clinvarClient.js, not directly.
  */
 

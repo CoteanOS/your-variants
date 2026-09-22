@@ -1,5 +1,5 @@
 /**
- * variantUtils.js — pure helpers for classifying and presenting ClinVar rows.
+ * variantUtils.js - pure helpers for classifying and presenting ClinVar rows.
  * No React, no DOM: kept separate so it can be unit-tested directly.
  */
 
@@ -79,7 +79,7 @@ export function confInfo(review, subs) {
     return { stars: 3, tier: "3★", detail: "expert panel", color: "#3FB68B", level: 3 };
   if (r.includes("no assertion") || r.includes("no classification"))
     return { stars: 0, tier: "0★", detail: `${subTxt}, no criteria`, color: "#D9544D", level: 0 };
-  // NB: check "multiple ... no conflicts" before the bare "conflict" test —
+  // NB: check "multiple ... no conflicts" before the bare "conflict" test -
   // "no conflicts" contains "conflict" as a substring and would misfire.
   if (r.includes("multiple") && !r.includes("conflicting"))
     return { stars: 2, tier: "2★", detail: `${subTxt}, no conflicts`, color: "#3FB68B", level: 2 };
@@ -100,7 +100,7 @@ export function hasSignal(s) {
   return true;
 }
 
-/** dbSNP page for an rsID — lists the ClinVar entries and is stable by number. */
+/** dbSNP page for an rsID - lists the ClinVar entries and is stable by number. */
 export function dbsnpUrl(rsid) {
   return `https://www.ncbi.nlm.nih.gov/snp/rs${rsid}`;
 }
@@ -122,7 +122,7 @@ export function variantLink(v) {
  * Groups variants by the clinical area named in ClinVar's own condition
  * (phenotype) text. This is organizational, not a ranking: it clusters by
  * *what ClinVar says the condition is*, using only data already in the DB.
- * Order matters — first matching area wins. */
+ * Order matters - first matching area wins. */
 const AREA_RULES = [
   ["Cancer & tumor predisposition", /cancer|carcinoma|tumou?r|neoplas|lynch|li-fraumeni|adenomatous|melanoma|leukemia|lymphoma|blastoma/i],
   ["Cardiac & vascular",            /cardio|cardiac|heart|arrhythmi|qt |brugada|aort|thrombo|coagul|factor v|hypertension|myopathy of the heart/i],

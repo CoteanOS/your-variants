@@ -5,8 +5,8 @@ import react from "@vitejs/plugin-react";
  * Local explain proxy (Google Gemini).
  *
  * The browser must never hold your API key (anyone could read it in devtools).
- * So the key lives in a git-ignored .env.local file, and this middleware —
- * running inside the Vite dev server — reads it and forwards explanation
+ * So the key lives in a git-ignored .env.local file, and this middleware -
+ * running inside the Vite dev server - reads it and forwards explanation
  * requests to the Gemini API. The frontend calls /api/explain with
  * { system, prompt }; only this server-side code ever sees the key.
  *

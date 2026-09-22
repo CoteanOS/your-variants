@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-add_gnomad.py — enrich an existing clinvar.sqlite with gnomAD allele
+add_gnomad.py - enrich an existing clinvar.sqlite with gnomAD allele
 frequencies, so the viewer can show how common each variant is (rarity is
 half the story a ClinVar classification doesn't tell you).
 
@@ -19,7 +19,7 @@ Usage:
 After running, the `variants` table has a new `gnomad_af` column (REAL, NULL
 where gnomAD has no entry for that rsID).
 
-NOTES — producing gnomad_af.tsv from gnomAD:
+NOTES - producing gnomad_af.tsv from gnomAD:
     gnomAD publishes per-chromosome sites VCFs. The reduced table you want is
     just (rsID, global AF). A rough recipe with bcftools:
 
@@ -55,7 +55,7 @@ def main():
     args = ap.parse_args()
 
     if not os.path.exists(args.db):
-        sys.exit(f"error: {args.db} not found — build the ClinVar DB first")
+        sys.exit(f"error: {args.db} not found - build the ClinVar DB first")
 
     con = sqlite3.connect(args.db)
     cur = con.cursor()

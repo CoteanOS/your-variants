@@ -15,7 +15,7 @@ function friendlyError(err) {
            "present in the public/ folder and reload.";
   if (/OPFS|SAHPool|opfs|SharedAccessHandle/i.test(m))
     return "This browser blocked local database storage (OPFS). Try a recent " +
-           "Chrome, Edge, or Safari — and not a private/incognito window, " +
+           "Chrome, Edge, or Safari - and not a private/incognito window, " +
            "which disables it.";
   if (/No rsIDs found/i.test(m)) return m; // already friendly
   if (/variant_logic|Pyodide|pyodide/i.test(m))
@@ -85,7 +85,7 @@ export default function App() {
       if (!rsids.length) {
         throw new Error(
           "No rsIDs found in this file. Expected raw 23andMe or AncestryDNA " +
-          "data — a tab- or comma-separated file with an rsID in the first " +
+          "data - a tab- or comma-separated file with an rsID in the first " +
           "column. This doesn't look like that."
         );
       }
@@ -173,7 +173,7 @@ export default function App() {
           <span className="yv-name">Your Variants</span>
           <span className="yv-local"><i className="dot" />local · nothing uploaded</span>
         </div>
-        <p className="yv-tag">Your DNA, matched against ClinVar — computed entirely in this browser.</p>
+        <p className="yv-tag">Your DNA, matched against ClinVar - computed entirely in this browser.</p>
         {dbMeta && (dbMeta.clinvar_release || dbMeta.built) && (
           <p className="yv-dbmeta">
             ClinVar release {dbMeta.clinvar_release || "unknown"}
@@ -232,7 +232,7 @@ export default function App() {
               );
             })}
           </div>
-          <p className="yv-dash-note">Organized by the condition ClinVar lists — a way to navigate your matches, not a ranking of importance. Click an area to filter.</p>
+          <p className="yv-dash-note">Organized by the condition ClinVar lists - a way to navigate your matches, not a ranking of importance. Click an area to filter.</p>
         </div>
       )}
 
@@ -243,7 +243,7 @@ export default function App() {
             <input type="checkbox" checked={homOnly} onChange={(e) => setHomOnly(e.target.checked)} />
             homozygous only
           </label>
-          <label className="yv-toggle" title="0★ entries have no assertion criteria — a lone submitter's unreviewed claim.">
+          <label className="yv-toggle" title="0★ entries have no assertion criteria - a lone submitter's unreviewed claim.">
             <input type="checkbox" checked={hideZero} onChange={(e) => setHideZero(e.target.checked)} />
             hide 0★{hiddenZeroCount ? ` (${hiddenZeroCount})` : ""}
           </label>
@@ -251,10 +251,10 @@ export default function App() {
             confidence
             <select value={minStars} onChange={(e) => setMinStars(Number(e.target.value))}>
               <option value={0}>any (0★+)</option>
-              <option value={1}>1★+ — has criteria</option>
-              <option value={2}>2★+ — corroborated</option>
-              <option value={3}>3★+ — expert panel</option>
-              <option value={4}>4★ — guideline</option>
+              <option value={1}>1★+ - has criteria</option>
+              <option value={2}>2★+ - corroborated</option>
+              <option value={3}>3★+ - expert panel</option>
+              <option value={4}>4★ - guideline</option>
             </select>
           </label>
           <label className="yv-select">
@@ -277,10 +277,10 @@ export default function App() {
           return (
             <article className="yv-card" key={i} style={{ "--rail": c, animationDelay: `${Math.min(i, 14) * 22}ms` }}>
               <div className="yv-card-top">
-                <span className="yv-gene">{v.gene_symbol || "—"}</span>
+                <span className="yv-gene">{v.gene_symbol || "-"}</span>
                 {href ? (
                   <a className="yv-rs yv-rs-link" href={href} target="_blank" rel="noopener noreferrer"
-                     title="Open the source record on NCBI — verify this call yourself">
+                     title="Open the source record on NCBI - verify this call yourself">
                     rs{v.rsid} ↗
                   </a>
                 ) : (
@@ -339,7 +339,7 @@ export default function App() {
                     {st.text && (
                       <div className="yv-explain-body">
                         {st.text.split("\n").filter(Boolean).map((p, k) => <p key={k}>{p}</p>)}
-                        <div className="yv-explain-foot">AI-generated from public ClinVar/gnomAD data — not medical advice.</div>
+                        <div className="yv-explain-foot">AI-generated from public ClinVar/gnomAD data - not medical advice.</div>
                       </div>
                     )}
                   </div>
@@ -358,7 +358,7 @@ export default function App() {
           <p className="yv-empty">Nothing matches these filters. Loosen the confidence tier, clear the type filter, or turn off “hide 0★”.</p>
         )}
         {results.length === 0 && !busy && (
-          <p className="yv-empty">No file loaded. Everything is read and analyzed here, on your device — nothing is uploaded.</p>
+          <p className="yv-empty">No file loaded. Everything is read and analyzed here, on your device - nothing is uploaded.</p>
         )}
       </div>
 
