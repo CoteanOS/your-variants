@@ -45,3 +45,4 @@ coverage/
 # local secrets — never commit
 .env.local
 .env
+src-tauri/target/
