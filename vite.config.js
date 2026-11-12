@@ -1,5 +1,8 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import process from "node:process";
+import { rmSync } from "node:fs";
+import { resolve } from "node:path";
 
 /**
  * Local explain proxy (Google Gemini).
@@ -95,10 +98,27 @@ function explainProxy(env) {
   };
 }
 
+/**
+ * Desktop build only: the app downloads the database on first launch, so the
+ * local copy in public/ must not be packed into the installer.
+ */
+function leaveDatabaseOut() {
+  return {
+    name: "leave-database-out",
+    apply: "build",
+    closeBundle() {
+      if (!process.env.TAURI_ENV_PLATFORM) return;
+      for (const f of ["clinvar.sqlite", "test_variant_logic.py"]) {
+        rmSync(resolve("dist", f), { force: true });
+      }
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
-    plugins: [react(), explainProxy(env)],
+    plugins: [react(), explainProxy(env), leaveDatabaseOut()],
     optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
   };
 });

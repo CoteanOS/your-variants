@@ -1,5 +1,7 @@
 mod db;
 
+use std::sync::Mutex;
+
 use serde::Deserialize;
 
 const GEMINI_MODEL: &str = "gemini-3.5-flash";
@@ -32,26 +34,64 @@ fn key_entry() -> Result<keyring::Entry, String> {
     keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER).map_err(|e| e.to_string())
 }
 
+/// The key is read from the OS keychain once per launch and then kept in
+/// memory, so the system only asks for permission a single time.
+static KEY_CACHE: Mutex<Option<String>> = Mutex::new(None);
+
+fn load_key() -> Result<String, String> {
+    let mut cache = KEY_CACHE.lock().map_err(|e| e.to_string())?;
+    if let Some(key) = cache.as_ref() {
+        return Ok(key.clone());
+    }
+    let key = key_entry()?
+        .get_password()
+        .map_err(|_| "No API key set. Use the Set AI key button first.".to_string())?;
+    let key = key.trim().to_string();
+    if key.is_empty() {
+        return Err("No API key set. Use the Set AI key button first.".to_string());
+    }
+    *cache = Some(key.clone());
+    Ok(key)
+}
+
 #[tauri::command]
 fn save_api_key(key: String) -> Result<(), String> {
-    key_entry()?
-        .set_password(key.trim())
-        .map_err(|e| e.to_string())
+    let key = key.trim().to_string();
+    key_entry()?.set_password(&key).map_err(|e| e.to_string())?;
+    *KEY_CACHE.lock().map_err(|e| e.to_string())? = Some(key);
+    Ok(())
 }
 
 #[tauri::command]
 fn has_api_key() -> bool {
-    key_entry()
-        .and_then(|e| e.get_password().map_err(|x| x.to_string()))
-        .map(|k| !k.trim().is_empty())
-        .unwrap_or(false)
+    load_key().is_ok()
+}
+
+/// Open a web link in the user's normal browser. Only https links are allowed.
+#[tauri::command]
+fn open_link(url: String) -> Result<(), String> {
+    if !url.starts_with("https://") || url.chars().any(|c| c.is_whitespace() || c.is_control()) {
+        return Err("Only https links can be opened.".to_string());
+    }
+    let mut cmd = if cfg!(target_os = "macos") {
+        let mut c = std::process::Command::new("open");
+        c.arg(&url);
+        c
+    } else if cfg!(target_os = "windows") {
+        let mut c = std::process::Command::new("rundll32");
+        c.args(["url.dll,FileProtocolHandler", &url]);
+        c
+    } else {
+        let mut c = std::process::Command::new("xdg-open");
+        c.arg(&url);
+        c
+    };
+    cmd.spawn().map(|_| ()).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 async fn explain(system: String, prompt: String) -> Result<String, String> {
-    let key = key_entry()?
-        .get_password()
-        .map_err(|_| "No API key set. Use the Set AI key button first.".to_string())?;
+    let key = load_key()?;
 
     // The key travels in a header, never in the URL, so it cannot end up in
     // an error message or a log line.
@@ -66,12 +106,13 @@ async fn explain(system: String, prompt: String) -> Result<String, String> {
     });
 
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(30))
+        .connect_timeout(std::time::Duration::from_secs(15))
+        .timeout(std::time::Duration::from_secs(60))
         .build()
         .map_err(|e| e.to_string())?;
     let mut last_err = String::from("Gemini request failed");
 
-    // Retry transient overloads (503) and rate limits (429) with backoff.
+    // Retry transient overloads (503), rate limits (429) and one slow answer.
     for attempt in 0..4u64 {
         let sent = client
             .post(&url)
@@ -113,11 +154,16 @@ async fn explain(system: String, prompt: String) -> Result<String, String> {
                 return Ok(text.trim().to_string());
             }
             Err(e) => {
-                last_err = if e.is_timeout() {
-                    "Gemini did not answer within 30 seconds. Try again.".to_string()
+                if e.is_timeout() {
+                    last_err = "Gemini is slow right now and did not answer. Try again in a moment."
+                        .to_string();
+                    // One more go on a slow answer, then give up.
+                    if attempt == 0 {
+                        continue;
+                    }
                 } else {
-                    e.without_url().to_string()
-                };
+                    last_err = e.without_url().to_string();
+                }
                 break;
             }
         }
@@ -142,6 +188,7 @@ pub fn run() {
             save_api_key,
             has_api_key,
             explain,
+            open_link,
             db::ensure_db,
             db::match_rsids
         ])

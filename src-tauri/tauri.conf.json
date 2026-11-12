@@ -21,7 +21,16 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self' 'wasm-unsafe-eval' 'unsafe-eval' https://cdn.jsdelivr.net https://cdn.sheetjs.com",
+        "connect-src": "'self' ipc: http://ipc.localhost https://cdn.jsdelivr.net",
+        "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src": "'self' data: https://fonts.gstatic.com",
+        "img-src": "'self' data: blob:",
+        "worker-src": "'self' blob:"
+      },
+      "devCsp": null
     }
   },
   "bundle": {
