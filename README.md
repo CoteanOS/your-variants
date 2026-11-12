@@ -37,7 +37,8 @@ with a clinician.
        |  list . dashboard . filters . ClinVar links . xlsx export
        v
   AI features (optional)   "Explain with Sofia" and "Ask your genome"
-       |  send only PUBLIC variant facts, never your genotype
+       |  Explain sends public variant facts only; a trait question also
+       |  sends your genotype at that trait's few markers, nothing else
        v
   Gemini API              (the API key stays server-side, never in the browser)
 ```
@@ -92,12 +93,14 @@ goal.
 - **`src/askTrait.js`** - the trait-question agent. Takes a plain-English
   question ("am I lactose tolerant?"), resolves it to the relevant rsID(s) via
   a curated map, filters your own variants to those rsIDs, reads the genotype
-  (strand-flip aware), and asks the model to phrase a calibrated answer. Only
-  the single trait's data is sent, never the whole genome.
+  (strand-flip aware), and asks the model to phrase a calibrated answer. This
+  request does include your genotype, but only at the few markers of the trait
+  you asked about. The rest of the genome is never sent.
 - **`src/TraitChat.jsx`** - the chat-box UI for the trait agent.
-- **`public/traits.json`** - the curated knowledge base of well-known
-  single-marker traits (lactose, caffeine, alcohol flush, bitter taste, earwax,
-  muscle type). Grow it by adding entries.
+- **`public/traits.json`** - the curated knowledge base of well-known traits
+  (lactose, caffeine, alcohol flush, bitter taste, earwax, muscle type,
+  warfarin sensitivity, Factor V Leiden). Genotype keys are written on the
+  forward strand, the way chips report them. Grow it by adding entries.
 - **`vite.config.js`** - besides the normal Vite config, it contains a small
   local proxy. Your API key lives in `.env.local` (git-ignored) and is read
   here, server-side; the browser never sees it. The proxy forwards to Gemini,
@@ -144,7 +147,9 @@ goal.
 - A chat box that answers plain-English trait questions ("am I lactose
   tolerant?", "do I metabolize caffeine fast?"). It maps the question to the
   relevant marker(s), reads your genotype for just those, and answers. If a
-  marker isn't in your file it says so rather than guessing.
+  marker isn't in your file it says so rather than guessing. Your genotype at
+  those markers is sent to the model; you choose what goes out, one trait at a
+  time.
 
 **Filtering and export**
 - Filter by confidence (minimum star tier) and by significance category.
@@ -212,8 +217,9 @@ cp .env.local.example .env.local     # then edit .env.local and paste your key
 `.env.local` holds `GEMINI_API_KEY=...`. It is git-ignored: your key is never
 committed and never shipped to anyone who clones this repo, and it is read only
 server-side by the dev server, so the browser never sees it. Without a key the
-app runs normally; only the AI buttons are disabled. Even with a key, requests
-contain only public variant facts, never your genotype.
+app runs normally; only the AI buttons are disabled. With a key, Explain sends
+only public variant facts. A trait question also sends your genotype at the
+markers for that one trait. Nothing else from your file leaves the machine.
 
 > The proxy that holds the key lives in the Vite **dev** server. A production
 > build is static files with no server, so deploying publicly would need a real

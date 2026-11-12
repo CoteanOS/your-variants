@@ -49,11 +49,13 @@ fn has_api_key() -> bool {
 async fn explain(system: String, prompt: String) -> Result<String, String> {
     let key = key_entry()?
         .get_password()
-        .map_err(|_| "No API key set. Add your Gemini key in settings.".to_string())?;
+        .map_err(|_| "No API key set. Use the Set AI key button first.".to_string())?;
 
+    // The key travels in a header, never in the URL, so it cannot end up in
+    // an error message or a log line.
     let url = format!(
-        "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
-        GEMINI_MODEL, key
+        "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent",
+        GEMINI_MODEL
     );
     let body = serde_json::json!({
         "systemInstruction": { "parts": [{ "text": system }] },
@@ -61,26 +63,35 @@ async fn explain(system: String, prompt: String) -> Result<String, String> {
         "generationConfig": { "maxOutputTokens": 2048 }
     });
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| e.to_string())?;
     let mut last_err = String::from("Gemini request failed");
 
-    // Retry transient overloads (503) and rate limits (429) with backoff,
-    // same behaviour the old dev-server proxy had.
+    // Retry transient overloads (503) and rate limits (429) with backoff.
     for attempt in 0..4u64 {
-        match client.post(&url).json(&body).send().await {
+        let sent = client
+            .post(&url)
+            .header("x-goog-api-key", key.trim())
+            .json(&body)
+            .send()
+            .await;
+        match sent {
             Ok(resp) => {
                 let status = resp.status().as_u16();
                 let data: GeminiResponse = match resp.json().await {
                     Ok(d) => d,
                     Err(e) => {
-                        last_err = e.to_string();
+                        last_err = e.without_url().to_string();
                         break;
                     }
                 };
                 if let Some(err) = data.error {
                     last_err = err.message;
                     if status == 503 || status == 429 {
-                        std::thread::sleep(std::time::Duration::from_millis(800 * (attempt + 1)));
+                        tokio::time::sleep(std::time::Duration::from_millis(800 * (attempt + 1)))
+                            .await;
                         continue;
                     }
                     return Err(last_err);
@@ -100,7 +111,11 @@ async fn explain(system: String, prompt: String) -> Result<String, String> {
                 return Ok(text.trim().to_string());
             }
             Err(e) => {
-                last_err = e.to_string();
+                last_err = if e.is_timeout() {
+                    "Gemini did not answer within 30 seconds. Try again.".to_string()
+                } else {
+                    e.without_url().to_string()
+                };
                 break;
             }
         }

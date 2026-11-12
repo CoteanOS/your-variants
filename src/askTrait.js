@@ -27,6 +27,25 @@ function flip(geno) {
   return geno ? geno.split("").map((b) => COMP[b] || b).sort().join("") : null;
 }
 
+/** True when a marker's alleles are each other's complement (C/G or A/T).
+ *  Such a marker reads the same on both strands, so a strand flip cannot be
+ *  detected and must never be guessed. */
+function strandAmbiguous(table) {
+  const alleles = new Set(Object.keys(table).join("").split(""));
+  return [...alleles].some((b) => alleles.has(COMP[b]));
+}
+
+/** Look up what a raw genotype means in a marker's effect table.
+ *  Table keys are on the forward strand. A file that reports the reverse
+ *  strand is handled by flipping, except for strand-ambiguous markers. */
+export function readMarker(table, raw) {
+  const geno = normGeno(raw);
+  if (!geno || !table) return { genotype: geno, meaning: null };
+  let meaning = table[geno] || null;
+  if (!meaning && !strandAmbiguous(table)) meaning = table[flip(geno)] || null;
+  return { genotype: geno, meaning };
+}
+
 const STOP = new Set(["i", "a", "the", "is", "am", "do", "my", "me", "can",
   "does", "if", "of", "or", "and", "to", "what", "how", "about", "genetically",
   "genetic", "have", "has", "for", "tolerance", "tolerant", "metabolism",
@@ -54,11 +73,8 @@ function collectFindings(trait, genotypes) {
   return trait.rsids.map((rs) => {
     const num = rs.replace(/^rs/i, "");
     const raw = genotypes[num];
-    const geno = normGeno(raw);
-    const table = trait.effect[rs] || {};
-    let meaning = null;
-    if (geno) meaning = table[geno] || table[flip(geno)] || null;
-    return { rsid: rs, genotype: geno, found: raw != null, meaning };
+    const { genotype, meaning } = readMarker(trait.effect[rs] || {}, raw);
+    return { rsid: rs, genotype, found: raw != null, meaning };
   });
 }
 

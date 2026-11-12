@@ -7,8 +7,9 @@
  * - Desktop (Tauri): calls the Rust `explain` command, which holds the key in
  *   the OS keychain. Detected by the presence of window.__TAURI_INTERNALS__.
  *
- * Either way the browser never holds the key, and only the public facts passed
- * in `system`/`prompt` leave the machine - never the user's genotype.
+ * Either way the browser never holds the key. Only what the caller puts in
+ * `system`/`prompt` leaves the machine: public variant facts for Explain, plus
+ * the genotype at one trait's markers for a trait question.
  */
 export async function askModel(system, prompt) {
   const isTauri =
