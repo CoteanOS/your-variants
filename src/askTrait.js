@@ -6,6 +6,8 @@
  * sent to the model - never the whole genome.
  */
 
+import { askModel } from "./aiClient.js";
+
 let TRAITS = null;
 async function loadTraits() {
   if (TRAITS) return TRAITS;
@@ -110,17 +112,6 @@ export async function askTrait(question, genotypes) {
       "consumer-array calls aren't clinically validated. Two short paragraphs at most.";
 
   const prompt = `Question: ${question}\n\nData:\n${JSON.stringify(facts, null, 2)}`;
-  const res = await fetch("/api/explain", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ system, prompt }),
-  });
-  if (!res.ok) {
-    let msg = `Request failed (${res.status})`;
-    try { const j = await res.json(); if (j.error) msg = j.error; } catch { /* keep */ }
-    throw new Error(msg);
-  }
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return { trait, findings, answer: (data.text || "").trim() };
+  const answer = await askModel(system, prompt);
+  return { trait, findings, answer };
 }

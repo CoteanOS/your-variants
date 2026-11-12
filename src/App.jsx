@@ -8,6 +8,10 @@ import {
 } from "./variantUtils.js";
 import { explainVariant } from "./explainVariant.js";
 
+// Desktop builds (Tauri) store the Gemini key in the OS keychain via a Rust
+// command. On the web build there is no Tauri, so the key UI stays hidden.
+const IS_TAURI = typeof window !== "undefined" && !!window.__TAURI_INTERNALS__;
+
 /** Map raw failures to something the person can act on, in the app's voice. */
 function friendlyError(err) {
   const m = (err && err.message) || String(err);
@@ -57,6 +61,23 @@ export default function App() {
   const [summary, setSummary] = useState(null);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [keyPanel, setKeyPanel] = useState(false);
+  const [keyInput, setKeyInput] = useState("");
+  const [keySaved, setKeySaved] = useState(false);
+
+  async function saveKey() {
+    const k = keyInput.trim();
+    if (!k) return;
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("save_api_key", { key: k });
+      setKeySaved(true);
+      setKeyInput("");
+      setKeyPanel(false);
+    } catch (e) {
+      setStatus("Could not save key: " + e);
+    }
+  }
   const [homOnly, setHomOnly] = useState(false);
   const [minStars, setMinStars] = useState(0);
   const [category, setCategory] = useState("all");
@@ -175,6 +196,20 @@ export default function App() {
         <div className="yv-mark">
           <span className="yv-name">Your Variants</span>
           <span className="yv-local"><i className="dot" />local · nothing uploaded</span>
+          {IS_TAURI && !keyPanel && (
+            <button className="yv-keybtn" onClick={() => setKeyPanel(true)} title="Set your Gemini API key">
+              {keySaved ? "AI key \u2713" : "Set AI key"}
+            </button>
+          )}
+          {IS_TAURI && keyPanel && (
+            <span className="yv-keyrow">
+              <input className="yv-keyin" type="password" placeholder="Paste Gemini API key"
+                value={keyInput} onChange={(e) => setKeyInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveKey()} autoFocus />
+              <button className="yv-keybtn" onClick={saveKey}>Save</button>
+              <button className="yv-keybtn" onClick={() => setKeyPanel(false)}>Cancel</button>
+            </span>
+          )}
         </div>
         <p className="yv-tag">Your DNA, matched against ClinVar - computed entirely in this browser.</p>
         {dbMeta && (dbMeta.clinvar_release || dbMeta.built) && (
@@ -398,6 +433,11 @@ html,body,#root{ margin:0; background:#0B0F12; min-height:100%; }
 .yv-head{ margin-bottom:30px; }
 .yv-mark{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .yv-name{ font-size:30px; font-weight:700; letter-spacing:-.01em; }
+.yv-keybtn{ margin-left:12px; font-size:11px; background:transparent; color:#5FE3C0; border:1px solid #2A5B50; border-radius:6px; padding:3px 10px; cursor:pointer; }
+.yv-keybtn:hover{ background:#12241F; border-color:#3FB68B; }
+.yv-keyrow{ display:inline-flex; gap:6px; margin-left:12px; align-items:center; }
+.yv-keyin{ font-size:11px; background:#0B1416; color:#DCEFE9; border:1px solid #24343A; border-radius:6px; padding:3px 8px; width:220px; }
+.yv-keyin:focus{ outline:none; border-color:#3FB68B; }
 .yv-local{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);
   border:1px solid var(--line); border-radius:999px; padding:3px 9px; display:inline-flex; align-items:center; gap:6px; }
 .yv-local .dot{ width:6px; height:6px; border-radius:50%; background:#3FB68B; box-shadow:0 0 8px #3FB68B; animation:pulse 2.4s ease-in-out infinite; }

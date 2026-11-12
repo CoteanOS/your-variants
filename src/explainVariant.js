@@ -8,6 +8,8 @@
  * the "your DNA never leaves your machine" promise holds.
  */
 
+import { askModel } from "./aiClient.js";
+
 const SYSTEM_PROMPT = `You explain human genetic variants to an informed layperson, accurately and without alarmism.
 
 You will be given PUBLIC database facts about a single variant. Explain only those facts. Do not recall variant details from memory - if a field is absent, say so rather than inventing it. Never guess a classification or frequency.
@@ -50,24 +52,8 @@ export async function explainVariant(v) {
       ? `\n\nClinVar record: https://www.ncbi.nlm.nih.gov/clinvar/variation/${publicFacts.clinvar_variation_id}/`
       : "");
 
-  // Calls the local proxy (see vite.config.js), which holds the API key
-  // server-side and talks to Gemini. The browser never sees the key. Only
-  // public variant facts are in this request - never the user's genotype.
-  const res = await fetch("/api/explain", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      system: SYSTEM_PROMPT,
-      prompt: userMessage,
-    }),
-  });
-
-  if (!res.ok) {
-    let msg = `Explainer request failed (${res.status})`;
-    try { const j = await res.json(); if (j.error) msg = j.error; } catch { /* keep default */ }
-    throw new Error(msg);
-  }
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return (data.text || "").trim();
+  // askModel routes to the dev-server proxy (web) or the Rust command
+  // (desktop). Either way the key stays off the browser and only these public
+  // facts leave the machine - never the user's genotype.
+  return await askModel(SYSTEM_PROMPT, userMessage);
 }
