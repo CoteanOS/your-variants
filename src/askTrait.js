@@ -108,24 +108,30 @@ export async function askTrait(question, genotypes) {
     trait: trait.panel ? trait.panel_trait : trait.names[0],
     gene: trait.gene,
     is_panel: !!trait.panel,
+    how_markers_combine: trait.panel_rule || undefined,
     summary: trait.summary,
     markers_checked: trait.rsids.length,
     markers_found_in_your_file: present.length,
     your_markers: present.map((f) => ({ rsid: f.rsid, genotype: f.genotype, indicates: f.meaning })),
   };
 
-  const system = trait.panel
+  const STYLE =
+    " Write plainly, the way a knowledgeable friend would say it. Short sentences. " +
+    "No dashes used as punctuation, no asterisks or other markup, no phrases like 'it is worth noting' or 'please keep in mind'. " +
+    "Start with the answer itself.";
+
+  const system = (trait.panel
     ? "You answer a genetic-trait question where the trait is driven by SEVERAL independent markers (a panel). " +
       "You are given the trait and the person's genotype + meaning for each marker found in their file. " +
-      "Do NOT collapse this into a single flat verdict. Explain that multiple markers dictate this trait, " +
-      "then report the breakdown: of the markers found in their file, how many point which way. " +
-      "For example: 'A few markers dictate this. Of the 3 in your file, 2 are consistent with X and 1 is not.' " +
-      "Then give the overall lean if there is one, noting any disagreement and that population background matters. " +
-      "Add one line that consumer-array calls aren't clinically validated. Two or three short paragraphs."
+      "First give the overall answer in one sentence. Then the breakdown: how many of the panel's markers are in their file " +
+      "and how many point which way. If how_markers_combine is given, use that rule to reach the overall answer " +
+      "instead of counting votes, and say so in one sentence when the markers disagree. " +
+      "Mention in one sentence that some markers matter mostly in certain populations, if the summary says so. " +
+      "End with one sentence that consumer-array calls aren't clinically validated. Five or six sentences in total."
     : "You answer a single genetic-trait question for someone looking at their own genotyping data. " +
       "You are given the trait, gene, a one-line summary, and the person's genotype with the established meaning. " +
-      "Give a short, direct answer based on that genotype. State the result clearly, but add one line noting " +
-      "consumer-array calls aren't clinically validated. Two short paragraphs at most.";
+      "Give a short, direct answer based on that genotype. State the result clearly, then add one sentence noting " +
+      "consumer-array calls aren't clinically validated. Three or four sentences in total.") + STYLE;
 
   const prompt = `Question: ${question}\n\nData:\n${JSON.stringify(facts, null, 2)}`;
   const answer = await askModel(system, prompt);

@@ -15,6 +15,7 @@
       "panel": true,
       "panel_trait": "lactase persistence (the ability to digest lactose in adulthood)",
       "primary_rsid": "rs4988235",
+      "panel_rule": "A persistence result at any single marker is enough for lactase persistence, because each variant works on its own. Non-persistence results at the other markers do not count against it. Non-persistence at every marker found points to lactose intolerance.",
       "rsids": [
         "rs4988235",
         "rs182549",
