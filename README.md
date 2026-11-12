@@ -291,4 +291,8 @@ Gemini (optional). Data from NCBI ClinVar and gnomAD.
 
 ## License
 
-MIT. See the LICENSE file. The software is provided as is, with no warranty.
+PolyForm Noncommercial 1.0.0. See the LICENSE file.
+
+You may use this software, change it for yourself, and share it, for noncommercial purposes only. Commercial use needs my permission. The software is provided as is, with no warranty.
+
+If you want a change or a feature, open an issue on GitHub.
