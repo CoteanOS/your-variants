@@ -232,6 +232,45 @@ of `vite.config.js` to a current model id from
 
 ---
 
+## Desktop app
+
+The same app also runs as a desktop program for macOS, built with Tauri. The interface is the same React code. A small Rust layer replaces the parts that needed a dev server or browser storage.
+
+What is different from the web version:
+
+- The ClinVar database is not bundled. On first launch the app downloads it once (about 116 MB) from this repo's GitHub Releases, unpacks it into the app's data folder, and queries it natively from Rust. Later launches start straight away.
+- The Gemini key is stored in the operating system keychain, not in a file. Click "Set AI key" in the header and paste your own key.
+- AI requests go from the Rust side directly to Gemini. There is no proxy and no server.
+- Links to NCBI open in your normal browser.
+- Pyodide still loads from its CDN, so the first launch needs an internet connection.
+
+Your DNA file is read locally, exactly as in the web version. The download on first launch fetches the database only.
+
+### Build it yourself
+
+You need Node, Rust (install with rustup) and the Xcode command line tools.
+
+```bash
+git clone https://github.com/CoteanOS/your-variants.git
+cd your-variants
+git checkout desktop
+npm install
+npx tauri dev
+```
+
+`npx tauri dev` runs the app in development mode. `npx tauri build` produces the installer under `src-tauri/target/release/bundle/dmg/`.
+
+The build is not signed. macOS will warn that the developer is unidentified. Right-click the app and choose Open the first time. macOS also asks once per launch for permission to read the saved key from the keychain. Choose Always Allow to stop the prompt for that build.
+
+### Where the desktop code lives
+
+- `src-tauri/src/lib.rs`: key storage, the Gemini request, opening links.
+- `src-tauri/src/db.rs`: first-launch database download and the rsID matching query.
+- `src-tauri/tauri.conf.json`: window, app identifier and the content security policy.
+- `src/clinvarClient.js` and `src/aiClient.js`: detect the desktop app and call Rust instead of the browser worker or the dev proxy.
+
+To ship a newer database, build it, gzip it, attach it to a new release, and update `DB_URL` in `src-tauri/src/db.rs`.
+
 ## Tests
 
 ```bash
@@ -252,3 +291,7 @@ Gemini (optional). Data from NCBI ClinVar and gnomAD.
   individually validated for accuracy at every marker. Array calls can be wrong;
   each rsID links to its ClinVar/dbSNP record to verify.
 - This repo intentionally contains no genetic data of any kind.
+
+## License
+
+MIT. See the LICENSE file. The software is provided as is, with no warranty.

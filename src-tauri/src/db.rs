@@ -165,6 +165,10 @@ fn query_matches(path: &Path, rsids: &[i64]) -> Result<Vec<Value>, String> {
 /// return its metadata. Emits `db-progress` events while downloading.
 #[tauri::command]
 pub async fn ensure_db(app: AppHandle) -> Result<Value, String> {
+    // One caller at a time, so two requests can never write the same file.
+    static DOWNLOAD: tauri::async_runtime::Mutex<()> = tauri::async_runtime::Mutex::const_new(());
+    let _guard = DOWNLOAD.lock().await;
+
     let path = db_path(&app)?;
     let cached = path.exists();
     if !cached {

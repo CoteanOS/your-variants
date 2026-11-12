@@ -1,10 +1,10 @@
 [package]
-name = "app"
+name = "yourvariants"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+description = "Desktop build of yourvariants, a local DNA variant viewer"
+authors = ["Coteanos"]
+license = "MIT"
+repository = "https://github.com/CoteanOS/your-variants"
 edition = "2024"
 rust-version = "1.90"
 

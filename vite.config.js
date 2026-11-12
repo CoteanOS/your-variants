@@ -20,6 +20,8 @@ import { resolve } from "node:path";
  * clear error and the rest of the app works normally.
  */
 const GEMINI_MODEL = "gemini-3.5-flash";
+// Used when the main model is overloaded or too slow.
+const GEMINI_FALLBACK_MODEL = "gemini-3.5-flash-lite";
 
 function explainProxy(env) {
   return {
@@ -44,8 +46,6 @@ function explainProxy(env) {
           for await (const chunk of req) raw += chunk;
           const { system, prompt } = JSON.parse(raw || "{}");
 
-          const url =
-            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
           const body = {
             systemInstruction: system ? { parts: [{ text: system }] } : undefined,
             contents: [{ role: "user", parts: [{ text: prompt || "" }] }],
@@ -53,37 +53,47 @@ function explainProxy(env) {
           };
 
           // Gemini returns 503 (overloaded) / 429 (rate limit) transiently,
-          // especially on the free tier. Retry a few times with backoff before
-          // giving up, so a busy server doesn't surface as an error.
-          let upstream, data;
-          for (let attempt = 0; attempt < 4; attempt++) {
-            const ctrl = new AbortController();
-            const t = setTimeout(() => ctrl.abort(), 20000); // 20s hard cap
-            try {
-              upstream = await fetch(url, {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify(body),
-                signal: ctrl.signal,
-              });
-            } catch (e) {
-              clearTimeout(t);
-              console.error("[explain] fetch failed:", String(e));
-              return json(504, { error: `Request to Gemini failed or timed out: ${e.name || e}` });
+          // especially on the free tier. Try the main model twice, then the
+          // lighter fallback twice. Any other error stops at once.
+          let data = {};
+          let status = 504;
+          let ok = false;
+          attempts: for (const model of [GEMINI_MODEL, GEMINI_FALLBACK_MODEL]) {
+            const url =
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+            for (let attempt = 0; attempt < 2; attempt++) {
+              const ctrl = new AbortController();
+              const t = setTimeout(() => ctrl.abort(), 45000); // 45s per try
+              try {
+                const upstream = await fetch(url, {
+                  method: "POST",
+                  headers: { "content-type": "application/json", "x-goog-api-key": key },
+                  body: JSON.stringify(body),
+                  signal: ctrl.signal,
+                });
+                status = upstream.status;
+                data = await upstream.json().catch(() => ({}));
+                ok = upstream.ok;
+              } catch (e) {
+                console.error(`[explain] ${model} failed:`, e.name || String(e));
+                status = 504;
+                data = { error: { message: "Gemini is slow right now and did not answer. Try again in a moment." } };
+                ok = false;
+              } finally {
+                clearTimeout(t);
+              }
+              if (ok) break attempts;
+              console.error(`[explain] ${model} ${status}:`, JSON.stringify(data).slice(0, 300));
+              if (status !== 503 && status !== 429 && status !== 504) break attempts;
+              await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
             }
-            clearTimeout(t);
-            data = await upstream.json().catch(() => ({}));
-            if (upstream.ok) break;
-            console.error(`[explain] Gemini ${upstream.status}:`, JSON.stringify(data).slice(0, 300));
-            if (upstream.status !== 503 && upstream.status !== 429) break;
-            await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
           }
-          if (!upstream.ok) {
+          if (!ok) {
             const msg = data?.error?.message ||
-              (upstream.status === 503
+              (status === 503
                 ? "Gemini is temporarily overloaded (503). Try again in a moment."
-                : `Gemini error ${upstream.status}`);
-            return json(upstream.status, { error: msg });
+                : `Gemini error ${status}`);
+            return json(status, { error: msg });
           }
           const text = (data?.candidates?.[0]?.content?.parts || [])
             .map((p) => p.text || "")

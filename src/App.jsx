@@ -100,7 +100,7 @@ export default function App() {
   }
 
   async function processFile(file) {
-    if (!file) return;
+    if (!file || busy) return;
     setBusy(true); setResults([]); setSummary(null);
     try {
       setStatus("Reading file");
@@ -214,7 +214,7 @@ export default function App() {
             </span>
           )}
         </div>
-        <p className="yv-tag">Your DNA, matched against ClinVar - computed entirely in this browser.</p>
+        <p className="yv-tag">Your DNA, matched against ClinVar - computed entirely on this device.</p>
         {dbMeta && (dbMeta.clinvar_release || dbMeta.built) && (
           <p className="yv-dbmeta">
             ClinVar release {dbMeta.clinvar_release || "unknown"}
