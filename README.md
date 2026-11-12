@@ -250,7 +250,6 @@ You need Node, Rust (install with rustup) and the Xcode command line tools.
 ```bash
 git clone https://github.com/CoteanOS/your-variants.git
 cd your-variants
-git checkout desktop
 npm install
 npx tauri dev
 ```
