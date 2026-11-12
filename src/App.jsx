@@ -15,6 +15,9 @@ const IS_TAURI = typeof window !== "undefined" && !!window.__TAURI_INTERNALS__;
 /** Map raw failures to something the person can act on, in the app's voice. */
 function friendlyError(err) {
   const m = (err && err.message) || String(err);
+  // Desktop database messages from the Rust side are already written for people.
+  if (/^(Database download|Could not reach the database|Download interrupted|The downloaded database|Could not unpack|Could not open the database)/.test(m))
+    return m;
   if (/download failed|404|Failed to fetch|NetworkError/i.test(m))
     return "Couldn't load the ClinVar database. Make sure clinvar.sqlite is " +
            "present in the public/ folder and reload.";
@@ -118,7 +121,7 @@ export default function App() {
       const { meta } = await initDb({
         url: "/clinvar.sqlite",
         onProgress: (g, t) =>
-          setStatus(`Loading database · ${(g / 1e6).toFixed(0)}${t ? " / " + (t / 1e6).toFixed(0) : ""} MB`),
+          setStatus(`${IS_TAURI ? "Downloading database, first launch only" : "Loading database"} · ${(g / 1e6).toFixed(0)}${t ? " / " + (t / 1e6).toFixed(0) : ""} MB`),
       });
       setDbMeta(meta || null);
 

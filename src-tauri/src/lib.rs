@@ -1,3 +1,5 @@
+mod db;
+
 use serde::Deserialize;
 
 const GEMINI_MODEL: &str = "gemini-3.5-flash";
@@ -136,7 +138,13 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![save_api_key, has_api_key, explain])
+        .invoke_handler(tauri::generate_handler![
+            save_api_key,
+            has_api_key,
+            explain,
+            db::ensure_db,
+            db::match_rsids
+        ])
         .run(tauri::generate_context!())
         .expect("error while building tauri application");
 }

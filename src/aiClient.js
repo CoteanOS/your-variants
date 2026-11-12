@@ -17,8 +17,13 @@ export async function askModel(system, prompt) {
 
   if (isTauri) {
     const { invoke } = await import("@tauri-apps/api/core");
-    const text = await invoke("explain", { system, prompt });
-    return (text || "").trim();
+    try {
+      const text = await invoke("explain", { system, prompt });
+      return (text || "").trim();
+    } catch (e) {
+      // Rust errors arrive as plain strings; callers expect an Error.
+      throw new Error(typeof e === "string" ? e : (e && e.message) || String(e), { cause: e });
+    }
   }
 
   const res = await fetch("/api/explain", {

@@ -1,7 +1,22 @@
 /**
  * clinvarClient.js - import THIS from React (not the worker).
- * Spins up clinvarWorker.js and exposes promise-based functions.
+ *
+ * Web build: spins up clinvarWorker.js (SQLite in the browser over OPFS).
+ * Desktop build (Tauri): the database lives in the app's data folder and is
+ * downloaded and queried by the Rust side, so no worker is started.
  */
+
+const IS_TAURI = typeof window !== "undefined" && !!window.__TAURI_INTERNALS__;
+
+/** Call a Rust command. Rust errors arrive as plain strings; wrap them. */
+async function invokeRust(cmd, args) {
+  const { invoke } = await import("@tauri-apps/api/core");
+  try {
+    return await invoke(cmd, args);
+  } catch (e) {
+    throw new Error(typeof e === "string" ? e : (e && e.message) || String(e), { cause: e });
+  }
+}
 
 let worker = null;
 let nextId = 1;
@@ -37,11 +52,25 @@ function call(method, args) {
   });
 }
 
-export function initDb({ url, onProgress, forceReload = false } = {}) {
+export async function initDb({ url, onProgress, forceReload = false } = {}) {
+  if (IS_TAURI) {
+    const { listen } = await import("@tauri-apps/api/event");
+    const stop = await listen("db-progress", (e) => {
+      if (onProgress) onProgress(e.payload.received, e.payload.total);
+    });
+    try {
+      return await invokeRust("ensure_db");
+    } finally {
+      stop();
+    }
+  }
   progressCb = onProgress || null;
   return call("init", { url, forceReload });
 }
 
 export const lookupByGene = (gene, limit) => call("lookupByGene", { gene, limit });
 export const lookupByRsid = (rsid) => call("lookupByRsid", { rsid });
-export const matchRsids = (rsids) => call("matchRsids", { rsids });
+export const matchRsids = (rsids) =>
+  IS_TAURI
+    ? invokeRust("match_rsids", { rsids: rsids.filter(Number.isInteger) })
+    : call("matchRsids", { rsids });
