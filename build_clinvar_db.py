@@ -199,12 +199,14 @@ def write_meta(con, source_path, kept, release_date):
     )
 
 
-def create_indexes(con):
+def create_indexes(con, lean=False):
     log("building indexes")
-    # Exact coordinate match is the primary path; composite covers it fully.
+    con.execute("CREATE INDEX idx_rsid ON variants(rsid);")
+    if lean:
+        # The app only ever matches by rsID, so the other indexes are weight.
+        return
     con.execute("CREATE INDEX idx_coord ON variants"
                 "(chromosome, pos, ref, alt);")
-    con.execute("CREATE INDEX idx_rsid ON variants(rsid);")
     con.execute("CREATE INDEX idx_gene ON variants(gene_symbol);")
     con.execute("CREATE INDEX idx_varid ON variants(variation_id);")
 
@@ -247,6 +249,9 @@ def build(args):
             continue
         if not keep_by_significance(row.get("ClinicalSignificance"), args.significance):
             continue
+        if args.lean and to_int(row.get("RS# (dbSNP)")) is None:
+            # No rsID means a chip file can never match this row.
+            continue
         batch.append(row_to_tuple(row))
         kept += 1
         if len(batch) >= BATCH:
@@ -258,7 +263,7 @@ def build(args):
     con.commit()
     log(f"inserted {kept:,} rows (from {read:,}) in {time.time()-t0:.1f}s")
 
-    create_indexes(con)
+    create_indexes(con, lean=args.lean)
     write_meta(con, args.input, kept, args.release_date)
     con.commit()
 
@@ -285,6 +290,10 @@ def parse_args():
     p.add_argument("--release-date",
                    help="ClinVar release date (YYYY-MM-DD) to record in the "
                         "meta table; defaults to the source file's mod date")
+    p.add_argument("--lean", action="store_true",
+                   help="build the smallest DB the app can use: drop rows "
+                        "with no rsID (a chip file can never match them) and "
+                        "build only the rsID index")
     p.add_argument("--significance", default="all",
                    choices=["all", "signal", "pathogenic"],
                    help="all = full mirror; signal = drop pure-benign/uninformative; "

@@ -2,7 +2,7 @@
   "$schema": "../../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Your Variants App",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "eu.coteanos.yourvariants",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -13,10 +13,11 @@
     "windows": [
       {
         "title": "Your Variants",
-        "width": 800,
-        "height": 600,
+        "width": 1200,
+        "height": 850,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "dragDropEnabled": false
       }
     ],
     "security": {
