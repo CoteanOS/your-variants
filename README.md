@@ -256,7 +256,9 @@ npx tauri dev
 
 `npx tauri dev` runs the app in development mode. `npx tauri build` produces the installer under `src-tauri/target/release/bundle/dmg/`.
 
-The build is not signed. macOS will warn that the developer is unidentified. Right-click the app and choose Open the first time. macOS also asks once per launch for permission to read the saved key from the keychain. Choose Always Allow to stop the prompt for that build.
+The release on GitHub is signed and notarized by Apple, so it opens without warnings. macOS asks once for permission to read the saved key from the keychain. Choose Always Allow and it stops asking.
+
+A build you make yourself is not signed unless you have your own Apple Developer certificate. macOS will then warn that the developer is unidentified. Right-click the app and choose Open the first time.
 
 ### Where the desktop code lives
 
